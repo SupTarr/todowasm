@@ -1,6 +1,6 @@
 module github.com/pallat/todowasm
 
-go 1.17
+go 1.24.0
 
 require (
 	github.com/augustoroman/promise v0.0.0-20151011205337-9164cf1f0cc6

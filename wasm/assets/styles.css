@@ -4,6 +4,7 @@
   margin: auto;
   display: contents;
 }
+
 .form {
   position: relative;
   background: #ffffff;
@@ -12,6 +13,7 @@
   padding: 45px;
   text-align: center;
 }
+
 .form input {
   font-family: "Roboto", sans-serif;
   outline: 0;
@@ -23,6 +25,7 @@
   box-sizing: border-box;
   font-size: 14px;
 }
+
 .form button {
   font-family: "Roboto", sans-serif;
   outline: 0;
