@@ -1,4 +1,4 @@
-module github.com/pallat/todowasm
+module github.com/SupTarr/todowasm
 
 go 1.24.0
 

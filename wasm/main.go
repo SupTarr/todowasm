@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pallat/todowasm/todo"
+	"github.com/SupTarr/todowasm/todo"
 	dom "honnef.co/go/js/dom/v2"
 )
 
