@@ -23,6 +23,7 @@ type TodoApp struct {
 	credDiv  *dom.HTMLDivElement
 	todo     *dom.BasicHTMLElement
 	loginBtn *dom.HTMLButtonElement
+	clearBtn *dom.HTMLButtonElement
 	newtodo  *dom.HTMLInputElement
 	todolist *dom.HTMLUListElement
 	count    *dom.HTMLSpanElement
@@ -37,6 +38,7 @@ func New(d dom.Document) *TodoApp {
 	todo := d.GetElementByID("todoapp").(*dom.BasicHTMLElement)
 
 	login := d.GetElementByID("login").(*dom.HTMLButtonElement)
+	clearBtn := d.GetElementByID("clear-completed").(*dom.HTMLButtonElement)
 	newtodo := d.GetElementByID("new-todo").(*dom.HTMLInputElement)
 	todolist := d.GetElementByID("todo-list").(*dom.HTMLUListElement)
 	count := d.GetElementByID("todo-count").(*dom.HTMLSpanElement)
@@ -48,6 +50,7 @@ func New(d dom.Document) *TodoApp {
 		credDiv:  credDiv,
 		todo:     todo,
 		loginBtn: login,
+		clearBtn: clearBtn,
 		newtodo:  newtodo,
 		todolist: todolist,
 		count:    count,
@@ -55,6 +58,7 @@ func New(d dom.Document) *TodoApp {
 	}
 
 	login.AddEventListener("click", false, todoapp.LoginBtnClickEvent)
+	clearBtn.AddEventListener("click", false, todoapp.ClearCompletedEvent)
 	newtodo.AddEventListener("keyup", false, todoapp.AddTodoEvent)
 
 	return todoapp
@@ -153,6 +157,31 @@ func (t *TodoApp) RemoveTodoEvent(event dom.Event) {
 	)
 
 	PromiseRemoveTodo(t.token, uint(id), p)
+}
+
+func (t *TodoApp) ClearCompletedEvent(event dom.Event) {
+	completed := make([]Todo, 0)
+	for _, todo := range t.todos {
+		if todo.Completed {
+			completed = append(completed, todo)
+		}
+	}
+	if len(completed) == 0 {
+		return
+	}
+
+	go func() {
+		for _, todo := range completed {
+			if err := RemoveTodoAPI(t.token, todo.ID); err != nil {
+				println("error", err.Error())
+				js.Global().Call("alert", err.Error())
+				t.FetchTodoList()
+				return
+			}
+		}
+
+		t.FetchTodoList()
+	}()
 }
 
 func (t *TodoApp) ToggleTodoEvent(event dom.Event, id uint) {

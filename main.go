@@ -15,6 +15,8 @@ var (
 	dir    = flag.String("dir", "./wasm/assets", "directory to serve")
 )
 
+const devToken = "local-dev-token"
+
 type serverTodo struct {
 	ID        uint   `json:"id"`
 	Text      string `json:"text"`
@@ -45,7 +47,7 @@ func tokenHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"token": "local-dev-token"})
+	writeJSON(w, http.StatusOK, map[string]string{"token": devToken})
 }
 
 func (s *todoStore) todosHandler(w http.ResponseWriter, r *http.Request) {
