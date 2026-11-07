@@ -30,6 +30,10 @@ Or use the Makefile:
 make wasm
 ```
 
+The workspace configures VS Code's Go tools for the `js/wasm` target so
+browser-only packages such as `syscall/js` do not appear as native macOS
+errors.
+
 Run this again whenever the Go code under `wasm/` or `todo/` changes.
 
 ## Run locally
