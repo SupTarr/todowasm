@@ -72,6 +72,7 @@ The API is served by the same process as the frontend:
 | `GET` | `/tokenz` | Returns the local development token. |
 | `GET` | `/todos` | Lists all todos. |
 | `POST` | `/todos` | Creates a todo from a JSON body such as `{"text":"Buy milk"}`. |
+| `PATCH` | `/todos/:id` | Updates completion from a JSON body such as `{"completed":true}`. |
 | `DELETE` | `/todos/:id` | Deletes a todo by numeric ID. |
 
 Todo responses use this shape:
@@ -79,7 +80,8 @@ Todo responses use this shape:
 ```json
 {
   "id": 1,
-  "text": "Buy milk"
+  "text": "Buy milk",
+  "completed": false
 }
 ```
 

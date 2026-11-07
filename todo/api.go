@@ -133,6 +133,50 @@ func PromiseRemoveTodo(token string, id uint, p *promise.Promise) {
 	}()
 }
 
+func PromiseUpdateTodo(token string, id uint, completed bool, p *promise.Promise) {
+	go func() {
+		t, err := UpdateTodoAPI(token, id, completed)
+		if err != nil {
+			p.Reject(err.Error())
+		} else {
+			p.Resolve(t)
+		}
+	}()
+}
+
+func UpdateTodoAPI(token string, id uint, completed bool) (Todo, error) {
+	buf := bytes.NewBuffer([]byte{})
+	if err := json.NewEncoder(buf).Encode(struct {
+		Completed bool `json:"completed"`
+	}{Completed: completed}); err != nil {
+		return Todo{}, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/todos/%d", baseURL, id), buf)
+	if err != nil {
+		return Todo{}, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("TransactionID", uuid.New().String())
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		js.Global().Call("alert", err.Error())
+		return Todo{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		return Todo{}, errors.New(resp.Status)
+	}
+
+	var t Todo
+	if err := json.NewDecoder(resp.Body).Decode(&t); err != nil {
+		return Todo{}, err
+	}
+	return t, nil
+}
+
 func RemoveTodoAPI(token string, id uint) error {
 	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/todos/%d", baseURL, id), nil)
 	if err != nil {

@@ -10,8 +10,9 @@ import (
 )
 
 type Todo struct {
-	ID   uint   `json:"id"`
-	Text string `json:"text"`
+	ID        uint   `json:"id"`
+	Text      string `json:"text"`
+	Completed bool   `json:"completed"`
 }
 
 type TodoApp struct {
@@ -154,6 +155,32 @@ func (t *TodoApp) RemoveTodoEvent(event dom.Event) {
 	PromiseRemoveTodo(t.token, uint(id), p)
 }
 
+func (t *TodoApp) ToggleTodoEvent(event dom.Event, id uint) {
+	input := event.Target().(*dom.HTMLInputElement)
+	p := &promise.Promise{}
+
+	p.Then(
+		func(value interface{}) interface{} {
+			updated := value.(Todo)
+			for i := range t.todos {
+				if t.todos[i].ID == updated.ID {
+					t.todos[i] = updated
+					break
+				}
+			}
+			t.refreshTodoList()
+			return p
+		}, func(value interface{}) interface{} {
+			println("error", value)
+			js.Global().Call("alert", value)
+			t.FetchTodoList()
+			return p
+		},
+	)
+
+	PromiseUpdateTodo(t.token, id, input.Checked(), p)
+}
+
 func (t *TodoApp) refreshTodoList() {
 	for _, li := range t.todoLI {
 		t.todolist.RemoveChild(li)
@@ -169,6 +196,10 @@ func (t *TodoApp) refreshTodoList() {
 		cb := t.d.CreateElement("input").(*dom.HTMLInputElement)
 		cb.SetType("checkbox")
 		cb.SetClass("toggle")
+		cb.SetChecked(todo.Completed)
+		cb.AddEventListener("change", false, func(event dom.Event) {
+			t.ToggleTodoEvent(event, todo.ID)
+		})
 		lb := t.d.CreateElement("label").(*dom.HTMLLabelElement)
 		lb.SetTextContent(todo.Text)
 		btn := t.d.CreateElement("button").(*dom.HTMLButtonElement)
@@ -186,6 +217,9 @@ func (t *TodoApp) refreshTodoList() {
 		li.AppendChild(div)
 		li.AppendChild(inp)
 		li.SetClass("todo-list")
+		if todo.Completed {
+			li.Class().Add("completed")
+		}
 		li.SetAttribute("data-id", strconv.Itoa(int(todo.ID)))
 
 		t.todolist.AppendChild(li)

@@ -16,8 +16,9 @@ var (
 )
 
 type serverTodo struct {
-	ID   uint   `json:"id"`
-	Text string `json:"text"`
+	ID        uint   `json:"id"`
+	Text      string `json:"text"`
+	Completed bool   `json:"completed"`
 }
 
 type todoStore struct {
@@ -83,7 +84,7 @@ func (s *todoStore) todoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	if r.Method != http.MethodDelete {
+	if r.Method != http.MethodDelete && r.Method != http.MethodPatch {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -98,6 +99,19 @@ func (s *todoStore) todoHandler(w http.ResponseWriter, r *http.Request) {
 	defer s.mu.Unlock()
 	for i, todo := range s.todos {
 		if todo.ID == uint(id) {
+			if r.Method == http.MethodPatch {
+				var update struct {
+					Completed *bool `json:"completed"`
+				}
+				if err := json.NewDecoder(r.Body).Decode(&update); err != nil || update.Completed == nil {
+					http.Error(w, "completed is required", http.StatusBadRequest)
+					return
+				}
+				todo.Completed = *update.Completed
+				s.todos[i] = todo
+				writeJSON(w, http.StatusOK, todo)
+				return
+			}
 			s.todos = append(s.todos[:i], s.todos[i+1:]...)
 			w.WriteHeader(http.StatusNoContent)
 			return
