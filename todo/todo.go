@@ -10,8 +10,8 @@ import (
 )
 
 type Todo struct {
-	ID   uint
-	Text string
+	ID   uint   `json:"id"`
+	Text string `json:"text"`
 }
 
 type TodoApp struct {
@@ -101,7 +101,7 @@ func (t *TodoApp) AddTodo(val string) {
 
 	p.Then(
 		func(value interface{}) interface{} {
-			newToDo := Todo{ID: 0, Text: val}
+			newToDo := value.(Todo)
 			t.todos = append(t.todos, newToDo)
 			t.refreshTodoList()
 
@@ -170,7 +170,7 @@ func (t *TodoApp) refreshTodoList() {
 		cb.SetType("checkbox")
 		cb.SetClass("toggle")
 		lb := t.d.CreateElement("label").(*dom.HTMLLabelElement)
-		lb.SetInnerHTML(todo.Text)
+		lb.SetTextContent(todo.Text)
 		btn := t.d.CreateElement("button").(*dom.HTMLButtonElement)
 		btn.SetClass("destroy")
 		btn.SetValue(strconv.Itoa(int(todo.ID)))
@@ -191,8 +191,8 @@ func (t *TodoApp) refreshTodoList() {
 		t.todolist.AppendChild(li)
 		t.todoLI = append(t.todoLI, li)
 
-		t.refreshFooter()
 	}
+	t.refreshFooter()
 }
 
 func (t *TodoApp) refreshFooter() {

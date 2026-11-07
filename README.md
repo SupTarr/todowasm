@@ -1,4 +1,4 @@
-# TodoMVC written Go
+# TodoMVC written in Go
 
 ## How to build
 
@@ -11,3 +11,6 @@
 ## How to run
 
 > go run main.go
+
+Then open http://localhost:8080. The server serves the WebAssembly frontend and
+the local todo API used by it. Todos are kept in memory and reset on restart.

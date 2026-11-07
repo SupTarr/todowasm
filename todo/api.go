@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const baseURL = "http://localhost:8081"
+const baseURL = ""
 
 func PromiseToken(p *promise.Promise) {
 	go func() {
@@ -34,9 +34,12 @@ func TokenAPI() (string, error) {
 		js.Global().Call("alert", err.Error())
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	var t accessToken
-	json.NewDecoder(resp.Body).Decode(&t)
+	if err := json.NewDecoder(resp.Body).Decode(&t); err != nil {
+		return "", err
+	}
 
 	return t.Token, nil
 }
@@ -53,7 +56,10 @@ func PromiseTodoList(token string, p *promise.Promise) {
 }
 
 func TodoListAPI(token string) ([]Todo, error) {
-	req, _ := http.NewRequest(http.MethodGet, baseURL+"/todos", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/todos", nil)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -64,9 +70,12 @@ func TodoListAPI(token string) ([]Todo, error) {
 	if resp.StatusCode >= 400 {
 		return nil, errors.New(resp.Status)
 	}
+	defer resp.Body.Close()
 
 	var t []Todo
-	json.NewDecoder(resp.Body).Decode(&t)
+	if err := json.NewDecoder(resp.Body).Decode(&t); err != nil {
+		return nil, err
+	}
 
 	return t, nil
 }
@@ -87,7 +96,10 @@ func AddTodoAPI(token string, text string) (Todo, error) {
 	buf := bytes.NewBuffer([]byte{})
 	json.NewEncoder(buf).Encode(&Todo{Text: text})
 
-	req, _ := http.NewRequest(http.MethodPost, baseURL+"/todos", buf)
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/todos", buf)
+	if err != nil {
+		return Todo{}, err
+	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("TransactionID", uuid.New().String())
 
@@ -99,9 +111,12 @@ func AddTodoAPI(token string, text string) (Todo, error) {
 	if resp.StatusCode >= 400 {
 		return Todo{}, errors.New(resp.Status)
 	}
+	defer resp.Body.Close()
 
 	var t Todo
-	json.NewDecoder(resp.Body).Decode(&t)
+	if err := json.NewDecoder(resp.Body).Decode(&t); err != nil {
+		return Todo{}, err
+	}
 
 	return t, nil
 }
@@ -119,7 +134,10 @@ func PromiseRemoveTodo(token string, id uint, p *promise.Promise) {
 }
 
 func RemoveTodoAPI(token string, id uint) error {
-	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/todos/%d", baseURL, id), nil)
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/todos/%d", baseURL, id), nil)
+	if err != nil {
+		return err
+	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("TransactionID", uuid.New().String())
 
@@ -131,6 +149,7 @@ func RemoveTodoAPI(token string, id uint) error {
 	if resp.StatusCode >= 400 {
 		return errors.New(resp.Status)
 	}
+	defer resp.Body.Close()
 
 	return nil
 }
